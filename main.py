@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 import sqlite3
 
 
@@ -68,10 +69,33 @@ def add_order():
     view_orders()
 
 
+def complete_order():
+    # Получаем выбранный элемент из виджета tree
+    selected_item = tree.selection()
+    if selected_item:
+        # Из первого выбранного элемента (selected_item[0]) получаем значения, и первое значение из этого списка
+        # предполагается быть идентификатором заказа
+        order_id = tree.item(selected_item[0])['values'][0]
+        conn = sqlite3.connect('business_orders.db')
+        cur = conn.cursor()
+        # SQL запрос обновляет статус заказа с идентификатором order_id на "Завершён"
+        cur.execute("UPDATE orders SET status='Завершён' WHERE id=?", (order_id,))
+        # Сохраняем изменения, без этого нельзя
+        conn.commit()
+        conn.close()
+        view_orders()
+    else:
+        messagebox.showwarning("Предупреждение", "Выберите заказ для завершения")
+        
+
 add_button = tk.Button(app, text="Добавить заказ", command=add_order)
 add_button.pack()
 
-# Создаём виджет `Treeview` с помощью библиотеки ttk, который является частью tkinter и предназначен для отображения
+complete_button = tk.Button(app, text="Завершить заказ", command=complete_order)
+complete_button.pack()
+
+
+# Создаём виджет Treeview с помощью библиотеки ttk, который является частью tkinter и предназначен для отображения
 # иерархических данных, расположенных в виде таблицы или дерева. Виджет Treeview широко используется для отображения
 # списка элементов в виде таблицы с сортируемыми столбцами или структурированных данных в виде раскрывающегося дерева
 columns = ("id", "customer_name", "order_details", "status")
